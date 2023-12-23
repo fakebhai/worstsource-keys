@@ -61,8 +61,17 @@ jobs:
     needs: update
     runs-on: ubuntu-latest
     steps:
-      - name: Sleep for 5 minutes
-        run: sleep 300
+      # Github schedule event would be much easier to use, but it has a terrible
+      # precision, triggering the workflow with more than 10 minutes off the
+      # expected time! And it's even worse at the beginning of every hour 
+      # (which is our case). So we'll use a small hack to make a simple cronjob.
+      - name: Sleep until the next hour at 00m:10s
+        run: |
+          next_date=$(date -d "+1hour" +"%D %H:00:10")
+          next_epoch=$(date -d "$next_date" +%s)
+          current_epoch=$(date +%s)
+          delay=$((next_epoch - current_epoch))
+          sleep $delay
 
       - name: Re-trigger workflow
         run: gh workflow run update_keys.yaml
