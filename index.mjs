@@ -31,6 +31,17 @@ const webcrackStep = async (x) => await webcrack(x).code
 const synchronyStep = async (x) => await synchrony.deobfuscateSource(x)
 const checkDeobfs = (x) => x.indexOf("<video />") !== -1
 
+// See https://github.com/Claudemirovsky/worstsource-keys/issues/2
+function getCodeVersion() {
+    // [hour]:00:10
+    const versionDate = new Date()
+    versionDate.setMinutes(0)
+    versionDate.setSeconds(10)
+    // Get only the first 10 digits
+    const timestamp = versionDate.getTime().toString().substring(0, 10)
+    return parseInt(timestamp).toString(16) // Convert to HEX
+}
+
 async function getDeobfuscatedScript() {
     const vidplayHost = "https://vidplay.lol"
     const headers = {
@@ -39,10 +50,7 @@ async function getDeobfuscatedScript() {
         "Origin": vidplayHost
     }
 
-    const vidplayHtml = await fetch(`${vidplayHost}/e/`, {headers: headers}).then(async (x) => await x.text())
-    const codeVersion = vidplayHtml.match(/embed.js\?v=(\w+)/)[1]
-    const scriptUrl = `${vidplayHost}/assets/mcloud/min/embed.js?v=${codeVersion}`
-
+    const scriptUrl = `${vidplayHost}/assets/mcloud/min/embed.js?v=${getCodeVersion()}`
     const obfuscatedScript = await fetch(scriptUrl, {headers: headers}).then(async (x) => await x.text())
 
     const firstTry = await deobfuscationChain(obfuscatedScript, [webcrackStep, synchronyStep])
