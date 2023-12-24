@@ -59,6 +59,8 @@ jobs:
     permissions:
       actions: write
     needs: update
+    # Always run, except when manually cancelled.
+    if: success() || failure()
     runs-on: ubuntu-latest
     steps:
       # Github schedule event would be much easier to use, but it has a terrible
